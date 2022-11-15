@@ -1,0 +1,73 @@
+﻿@page "/"
+@using KazzingtonPostB.Shared
+@using Base64UrlEncoding
+@using System.ComponentModel.DataAnnotations;
+
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@inject Services.AppData articlePage
+
+<PageTitle>Index</PageTitle>
+
+@if (proxiedpage ==null)
+{
+    <center>
+        <h1>Hello, welcome to KazzingtonPost!</h1>
+
+        <p>This component demonstrates fetching data from the server.</p>
+        <br />
+
+        <EditForm Model="@urlModel" OnValidSubmit="@GetArticle">
+            <DataAnnotationsValidator />
+            <InputText id="url" @bind-Value="urlModel.Url" DisplayName="URL of the article"/>
+            <br /><br />
+            <button id="submit">Get the stuff</button>
+            <ValidationMessage For="() => urlModel.Url" />
+        </EditForm>
+    </center>
+}
+
+
+@if (loading == true && proxiedpage == null)
+{
+    <center>
+        <br>
+        <p><em>Loading...</em></p>
+    </center>
+}
+else if (loading == true && proxiedpage != null) 
+{
+    NavManager.NavigateTo("/article");
+}
+
+@code {
+    private bool loading = false;
+    private ProxyPage? proxiedpage;
+
+    private UrlModel urlModel = new();
+
+    private class UrlModel
+    {
+        [Required(ErrorMessage = "URL is required.")]
+        [RegularExpression(@"(https:\/\/)(repubblica.it|www.repubblica.it).*", ErrorMessage = "Site not supported, sorry.")]
+        public string? Url { get; set; }
+    }
+
+    protected async Task GetArticle()
+    {
+        loading = true;
+
+        string encodedUrl = "";
+        if (urlModel.Url != null)
+        {
+            encodedUrl = Base64UrlEncoder.Encode(urlModel.Url);
+        }
+
+        proxiedpage = await Http.GetFromJsonAsync<ProxyPage>($"GetPage?encodedUrl={encodedUrl}");
+
+        articlePage.Data = proxiedpage.HTML;
+        articlePage.Url = urlModel.Url;
+    }
+
+
+}

@@ -1,0 +1,23 @@
+﻿@layout ArticleLayout
+@page "/article"
+@using KazzingtonPostB.Shared
+@inject Services.AppData articlePage
+@inject NavigationManager NavManager
+
+<PageTitle>Article</PageTitle>
+
+@if (articlePage.Data == null)
+{
+    NavManager.NavigateTo("/");
+}
+else
+{
+    @ms
+}
+
+@code {
+    MarkupString ms => (MarkupString) articlePage.Data;
+
+    // TODO: manage URL to choose Bypass technique
+    Uri url => new Uri(articlePage.Url);
+}
