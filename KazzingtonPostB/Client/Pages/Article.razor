@@ -3,6 +3,7 @@
 @using KazzingtonPostB.Shared
 @inject Services.AppData articlePage
 @inject NavigationManager NavManager
+@using AngleSharp
 
 <PageTitle>Article</PageTitle>
 
@@ -16,8 +17,62 @@ else
 }
 
 @code {
-    MarkupString ms => (MarkupString) articlePage.Data;
+    private MarkupString? ms;
+    private Uri? url;
 
-    // TODO: manage URL to choose Bypass technique
-    Uri url => new Uri(articlePage.Url);
+    protected override async Task OnInitializedAsync()
+    {
+        url = new Uri(articlePage.Url);
+
+        ms = (MarkupString)await HandlePaywall(articlePage.Data, url.Host);
+    }
+
+    private static async Task<String> HandlePaywall(String page, String domain)
+    {
+        String FixedPage;
+
+        // Configure Paywall bypass tecnhiques here
+        if (domain.EndsWith("repubblica.it"))
+        {
+            // TODO: remove article limit alert using Anglesharp
+            AngleSharp.IConfiguration config = Configuration.Default;
+            IBrowsingContext context = BrowsingContext.New(config);
+
+            AngleSharp.Dom.IDocument document = await context.OpenAsync(req => req.Content(page));
+
+            if (document.GetElementById("paywall") is not null)
+            {
+                document.GetElementById("paywall").Remove();
+            }
+            if (document.GetElementById("adv-TopLeft") is not null)
+            {
+                document.GetElementById("adv-TopLeft").Remove();
+            }
+
+            FixedPage = document.DocumentElement.OuterHtml;
+        }
+        else if (domain.EndsWith("corriere.it"))
+        {
+            FixedPage = page;
+        }
+        else if (domain.EndsWith("huffingtonpost.it"))
+        {
+            FixedPage = page;
+        }
+        else if (domain.EndsWith("limesonline.com"))
+        {
+            FixedPage = page;
+        }
+        else if (domain.EndsWith("editorialedomani.it"))
+        {
+            FixedPage = page;
+        }
+        else
+        {
+            FixedPage = "<h1>Site not supported, sorry.</h1>";
+        }
+        
+        return FixedPage;
+    } 
+
 }

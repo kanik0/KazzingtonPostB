@@ -7,19 +7,18 @@
 @inject NavigationManager NavManager
 @inject Services.AppData articlePage
 
-<PageTitle>Index</PageTitle>
+<PageTitle>KazzingtonPost - Index</PageTitle>
 
 @if (proxiedpage ==null)
 {
     <center>
-        <h1>Hello, welcome to KazzingtonPost!</h1>
-
-        <p>This component demonstrates fetching data from the server.</p>
+        <h1>Hello, welcome to KazzingtonPost🅱️!</h1>
         <br />
+        <p>Provide a URL to get the stuff:</p>
 
         <EditForm Model="@urlModel" OnValidSubmit="@GetArticle">
             <DataAnnotationsValidator />
-            <InputText id="url" @bind-Value="urlModel.Url" DisplayName="URL of the article"/>
+            <InputText style="width: 70%;" id="url" @bind-Value="urlModel.Url" DisplayName="URL of the article"/>
             <br /><br />
             <button id="submit">Get the stuff</button>
             <ValidationMessage For="() => urlModel.Url" />
@@ -46,10 +45,13 @@ else if (loading == true && proxiedpage != null)
 
     private UrlModel urlModel = new();
 
+    // Configure Enabled Sites here
+    private const String enabledSites = @"((https:\/\/)(.*)(repubblica.it).*)" + "|" + @"((https:\/\/)(.*)(corriere.it).*)" + "|" + @"((https:\/\/)(.*)(huffingtonpost.it).*)" + "|" + @"((https:\/\/)(.*)(limesonline.com).*)" + "|" + @"((https:\/\/)(.*)(editorialedomani.it).*)";
+
     private class UrlModel
     {
         [Required(ErrorMessage = "URL is required.")]
-        [RegularExpression(@"(https:\/\/)(repubblica.it|www.repubblica.it).*", ErrorMessage = "Site not supported, sorry.")]
+        [RegularExpression(enabledSites, ErrorMessage = "Site not supported, sorry.")]
         public string? Url { get; set; }
     }
 
