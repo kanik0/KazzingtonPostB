@@ -101,3 +101,9 @@ a, .btn-link {
     .loading-progress-text:after {
         content: var(--blazor-load-percentage-text, "Loading");
     }
+
+.fixed-icon {
+    position: fixed;
+    left: 50px;
+    top: 60px;
+}

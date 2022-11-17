@@ -4,6 +4,7 @@
 @inject Services.AppData articlePage
 @inject NavigationManager NavManager
 @using AngleSharp
+@using Base64UrlEncoding
 
 <PageTitle>Article</PageTitle>
 
@@ -13,21 +14,30 @@
 }
 else
 {
+    <div class="fixed-icon" title="Share">
+        <div class="icon">
+            <i class="fa fa-copy"></i>
+        </div>
+            <span><b><a href="@sharedLink">Share</a></b></span>
+    </div>
     @ms
 }
 
 @code {
     private MarkupString? ms;
+    private String? sharedLink;
     private Uri? url;
 
     protected override async Task OnInitializedAsync()
     {
         url = new Uri(articlePage.Url);
 
+        sharedLink = "/share/" + Base64UrlEncoder.Encode(url.OriginalString);
+
         ms = (MarkupString)await HandlePaywall(articlePage.Data, url.Host);
     }
 
-    private static async Task<String> HandlePaywall(String page, String domain)
+    public static async Task<String> HandlePaywall(String page, String domain)
     {
         String FixedPage;
 
@@ -69,7 +79,7 @@ else
         }
         else
         {
-            FixedPage = "<h1>Site not supported, sorry.</h1>";
+            FixedPage = "<center><h1>Site not supported, sorry.</h1><center>";
         }
         
         return FixedPage;

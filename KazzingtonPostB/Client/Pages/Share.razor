@@ -1,0 +1,85 @@
+﻿@layout ArticleLayout
+@page "/share/{sharedUrl?}"
+@using KazzingtonPostB.Shared
+@using Base64UrlEncoding
+@using AngleSharp
+@inject Services.AppData articlePage
+@inject NavigationManager NavManager
+@inject HttpClient Http
+
+
+<PageTitle>Article</PageTitle>
+
+@if (sharedUrl is null)
+{
+    NavManager.NavigateTo("/");
+}
+else if (sharedUrl is not null && proxiedpage is null && ms is null)
+{
+    <center>
+        <p><em>Loading...</em></p>
+    </center>
+}
+else
+{
+    <div class="fixed-icon" title="Share">
+        <div class="icon">
+            <i class="fa fa-copy"></i>
+        </div>
+            <span><b><a href="@sharedLink">Share</a></b></span>
+    </div>
+    @ms
+}
+
+@code {
+    private MarkupString? ms;
+    private Uri? url;
+    private String? sharedLink;
+    private ProxyPage? proxiedpage;
+
+    [Parameter]
+    public String? sharedUrl { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Try decode shared URL
+        if (sharedUrl is not null)
+        {
+            sharedLink = "/share/" + sharedUrl;
+            String decodedUrl = "";
+            try
+            {
+                decodedUrl = Base64UrlEncoder.Decode(sharedUrl);
+            }
+            catch
+            {
+                ms = (MarkupString)"<center><h1>A malformed URL was provided.</h1></center>";
+            }
+
+            try
+            {
+                url = new Uri(decodedUrl);
+
+                // TODO: centralizzare controlli su URL
+                if (url.Host.EndsWith("repubblica.it") || url.Host.EndsWith("corriere.it") || url.Host.EndsWith("huffingtonpost.it") || url.Host.EndsWith("limesonline.com") || url.Host.EndsWith("editorialedomani.it"))
+                {
+                    proxiedpage = await Http.GetFromJsonAsync<ProxyPage>($"GetPage?encodedUrl={sharedUrl}");
+
+                    if (proxiedpage is not null && url is not null)
+                    {
+                        ms = (MarkupString)await Article.HandlePaywall(proxiedpage.HTML, url.Host);
+                    }
+                }
+                else
+                {
+                    ms = (MarkupString)"<center><h1>Site is not supported, sorry.</h1></center>";
+                }
+            }
+            catch
+            {
+                ms = (MarkupString)"<center><h1>A malformed URL was provided.</h1></center>";
+            }
+        }
+    }
+}
