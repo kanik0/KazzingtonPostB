@@ -22,13 +22,7 @@ else if (sharedUrl is not null && proxiedpage is null && ms is null)
 }
 else
 {
-    <div class="fixed-icon" title="Share">
-        <div class="icon">
-            <i class="fa fa-copy"></i>
-        </div>
-            <span><b><a href="@sharedLink">Share</a></b></span>
-    </div>
-    @ms
+    NavManager.NavigateTo("/article");
 }
 
 @code {
@@ -68,7 +62,8 @@ else
 
                     if (proxiedpage is not null && url is not null)
                     {
-                        ms = (MarkupString)await Article.HandlePaywall(proxiedpage.HTML, url.Host);
+                        articlePage.Data = proxiedpage.HTML;
+                        articlePage.Url = decodedUrl;
                     }
                 }
                 else

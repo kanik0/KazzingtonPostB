@@ -30,11 +30,14 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        url = new Uri(articlePage.Url);
+        if (articlePage.Url is not null && articlePage.Data is not null)
+        {
+            url = new Uri(articlePage.Url);
 
-        sharedLink = "/share/" + Base64UrlEncoder.Encode(url.OriginalString);
+            sharedLink = "/share/" + Base64UrlEncoder.Encode(url.OriginalString);
 
-        ms = (MarkupString)await HandlePaywall(articlePage.Data, url.Host);
+            ms = (MarkupString)await HandlePaywall(articlePage.Data, url.Host);
+        }
     }
 
     public static async Task<String> HandlePaywall(String page, String domain)
