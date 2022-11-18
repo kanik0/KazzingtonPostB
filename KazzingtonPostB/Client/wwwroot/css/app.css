@@ -106,4 +106,5 @@ a, .btn-link {
     position: fixed;
     left: 50px;
     top: 60px;
+    z-index: 100000;
 }
