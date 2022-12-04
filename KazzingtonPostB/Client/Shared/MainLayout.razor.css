@@ -2,14 +2,18 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    max-height: 100vh;
+    overflow-y: auto;
 }
 
 main {
     flex: 1;
+    overflow-y: auto;
 }
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    /*background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);*/
+    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #000000 70%);
 }
 
 .top-row {
@@ -17,6 +21,7 @@ main {
     border-bottom: 1px solid #d6d5d5;
     justify-content: flex-end;
     height: 3.5rem;
+    max-height: 3.5rem;
     display: flex;
     align-items: center;
 }
@@ -27,14 +32,45 @@ main {
         text-decoration: none;
     }
 
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
+        .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
+            text-decoration: underline;
+        }
+
+        .top-row ::deep a:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+.bottom-row {
+    background-color: #f7f7f7;
+    border-top: 1px solid #d6d5d5;
+    height: 3.5rem;
+    max-height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: fixed;
+    bottom: 0;
+    width: 100vw;
+}
+
+    /*Select all a elements where parent is a .bottom-row*/
+    .bottom-row > a {
+        display: flex;
+        color: rgb(33, 37, 41);
+        /*color and text-decor used to not show it as link*/
+        text-decoration: none;
+        /*fontsize is the same copied from navbar-brand style inside NavMenu.razor.css*/
+        font-size: 1.1rem;
     }
 
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+/*Optionally this selector will also work: main article.content*/
+main > .content {
+    /*7rem comes from adding 3.5rem of top-row and 3.5rem of bottom-row*/
+    height: calc(100vh - 7rem);
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+}
 
 @media (max-width: 640.98px) {
     .top-row:not(.auth) {
@@ -48,6 +84,16 @@ main {
     .top-row ::deep a, .top-row ::deep .btn-link {
         margin-left: 0;
     }
+
+    .page main {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 3.5rem;
+    }
+
+        .page main .top-row {
+            flex: 0 0 3.5rem;
+        }
 }
 
 @media (min-width: 641px) {
@@ -62,17 +108,23 @@ main {
         top: 0;
     }
 
+    .bottom-row {
+        left: 250px;
+        width: calc(100vw - 250px);
+        justify-content: flex-end;
+    }
+
     .top-row {
         position: sticky;
         top: 0;
         z-index: 1;
     }
 
-    .top-row.auth ::deep a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
-    }
+        .top-row.auth ::deep a:first-child {
+            flex: 1;
+            text-align: right;
+            width: 0;
+        }
 
     .top-row, article {
         padding-left: 2rem !important;

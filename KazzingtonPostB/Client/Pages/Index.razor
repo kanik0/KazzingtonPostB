@@ -1,9 +1,94 @@
-﻿@page "/"
+﻿@page "/home"
+@page "/"
+@using KazzingtonPostB.Shared
+@using Base64UrlEncoding
+@using System.ComponentModel.DataAnnotations;
 
-<PageTitle>Index</PageTitle>
+@inject HttpClient Http
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavManager
+@inject Services.AppData articlePage
 
-<h1>Hello, world!</h1>
+<PageTitle>KazzingtonPost - Index</PageTitle>
 
-Welcome to your new app.
+@if (proxiedpage == null)
+{
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12">
+            <MudText Align="Align.Center" Typo="Typo.h3" Class="mt-4">Hello!</MudText>
+            <MudText Align="Align.Center" Typo="Typo.h3" Class="pb-1">Welcome to Kazzington​Post🅱️</MudText>
+            <MudText Align="Align.Center" Typo="Typo.subtitle1" Class="smaller pb-3">Provide a URL to get the stuff:</MudText>
+        </MudItem>
+    </MudGrid>
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <EditForm Class="pb-5" Model="@urlModel" OnValidSubmit="@GetArticle">
+            <DataAnnotationsValidator />
+            <MudGrid>
+                <MudItem xs="12" sm="12" md="12">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudTextField Label="Site URL" HelperText="Must be a supported site"
+                                      @bind-Value="urlModel.Url" For="@(() => urlModel.Url)" />
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Get the stuff</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </MudContainer>
+    <MudText Align="Align.Center" Typo="Typo.subtitle1" Class="smaller mx-lg-auto">KazzingtonPost v0.5 - WebAssembly</MudText>
+}
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+
+@if (loading == true && proxiedpage == null)
+{
+    <center>
+        <br>
+        <p><em>Loading...</em></p>
+    </center>
+}
+else if (loading == true && proxiedpage != null)
+{
+    NavManager.NavigateTo("/article");
+}
+
+@code {
+    private bool loading = false;
+    private ProxyPage? proxiedpage;
+
+    private UrlModel urlModel = new();
+
+    // Configure Enabled Sites here
+    private const String enabledSites = @"((https:\/\/)(.*)(repubblica.it).*)" + "|" + @"((https:\/\/)(.*)(corriere.it).*)" + "|" + @"((https:\/\/)(.*)(huffingtonpost.it).*)" + "|" + @"((https:\/\/)(.*)(limesonline.com).*)" + "|" + @"((https:\/\/)(.*)(editorialedomani.it).*)";
+
+    private class UrlModel
+    {
+        [Required(ErrorMessage = "URL is required.")]
+        [RegularExpression(enabledSites, ErrorMessage = "Site not supported, sorry.")]
+        public string? Url { get; set; }
+    }
+
+    protected async Task GetArticle()
+    {
+        loading = true;
+
+        string encodedUrl = "";
+        if (urlModel.Url != null)
+        {
+            encodedUrl = Base64UrlEncoder.Encode(urlModel.Url);
+        }
+
+        HttpClient NoAuthenticationClient =
+         ClientFactory.CreateClient(
+             "KazzingtonPostB.ServerAPI.NoAuthenticationClient");
+
+        proxiedpage = await NoAuthenticationClient.GetFromJsonAsync<ProxyPage>($"GetPage?encodedUrl={encodedUrl}");
+
+        articlePage.Data = proxiedpage.HTML;
+        articlePage.Url = urlModel.Url;
+    }
+
+
+}
