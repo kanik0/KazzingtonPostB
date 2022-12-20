@@ -3,6 +3,7 @@
     public class AppData
     {
         public String? Data { get; set; }
+        public String? DataAMP { get; set; }
         public String? Url { get; set; }
     }
 }

@@ -38,7 +38,7 @@
             </MudGrid>
         </EditForm>
     </MudContainer>
-    <MudText Align="Align.Center" Typo="Typo.subtitle1" Class="smaller mx-lg-auto">KazzingtonPost v0.5 - WebAssembly</MudText>
+    <MudText Align="Align.Center" Typo="Typo.subtitle1" Class="smaller mx-lg-auto">KazzingtonPost v0.6 - WebAssembly</MudText>
 }
 
 
@@ -61,7 +61,7 @@ else if (loading == true && proxiedpage != null)
     private UrlModel urlModel = new();
 
     // Configure Enabled Sites here
-    private const String enabledSites = @"((https:\/\/)(.*)(repubblica.it).*)" + "|" + @"((https:\/\/)(.*)(corriere.it).*)" + "|" + @"((https:\/\/)(.*)(huffingtonpost.it).*)" + "|" + @"((https:\/\/)(.*)(limesonline.com).*)" + "|" + @"((https:\/\/)(.*)(editorialedomani.it).*)";
+    private const String enabledSites = @"((https:\/\/)(.*)(repubblica.it).*)" + "|" + @"((https:\/\/)(.*)(corriere.it).*)" + "|" + @"((https:\/\/)(.*)(huffingtonpost.it).*)" + "|" + @"((https:\/\/)(.*)(limesonline.com).*)" + "|" + @"((https:\/\/)(.*)(editorialedomani.it).*) " + "|" + @"((https:\/\/)(.*)(ilfattoquotidiano.it).*)";
 
     private class UrlModel
     {
@@ -75,18 +75,34 @@ else if (loading == true && proxiedpage != null)
         loading = true;
 
         string encodedUrl = "";
+        bool isAMP = false;
+
         if (urlModel.Url != null)
         {
             encodedUrl = Base64UrlEncoder.Encode(urlModel.Url);
+
+            // Check for AMP technique
+            if (urlModel.Url.Contains("ilfattoquotidiano.it"))
+            {
+                isAMP = true;
+            }
         }
 
         HttpClient NoAuthenticationClient =
-         ClientFactory.CreateClient(
-             "KazzingtonPostB.ServerAPI.NoAuthenticationClient");
+            ClientFactory.CreateClient(
+                "KazzingtonPostB.ServerAPI.NoAuthenticationClient");
 
-        proxiedpage = await NoAuthenticationClient.GetFromJsonAsync<ProxyPage>($"GetPage?encodedUrl={encodedUrl}");
+        if (isAMP)
+        {
+            proxiedpage = await NoAuthenticationClient.GetFromJsonAsync<ProxyPage>($"GetPage?encodedUrl={encodedUrl}&amp=true");
+        }
+        else
+        {
+            proxiedpage = await NoAuthenticationClient.GetFromJsonAsync<ProxyPage>($"GetPage?encodedUrl={encodedUrl}&amp=false");
+        }
 
         articlePage.Data = proxiedpage.HTML;
+        articlePage.DataAMP = proxiedpage.HTMLAMP;
         articlePage.Url = urlModel.Url;
     }
 

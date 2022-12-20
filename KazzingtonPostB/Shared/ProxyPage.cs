@@ -6,5 +6,6 @@ namespace KazzingtonPostB.Shared
     {
         public HttpStatusCode StatusCode { get; set; }
         public string? HTML { get; set; }
+        public string? HTMLAMP { get; set; }
     }
 }

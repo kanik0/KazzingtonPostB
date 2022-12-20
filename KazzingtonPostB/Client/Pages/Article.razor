@@ -30,24 +30,24 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        if (articlePage.Url is not null && articlePage.Data is not null)
+        if (articlePage.Url is not null && articlePage.Data is not null && articlePage.DataAMP is not null)
         {
             url = new Uri(articlePage.Url);
 
             sharedLink = "/share/" + Base64UrlEncoder.Encode(url.OriginalString);
 
-            ms = (MarkupString)await HandlePaywall(articlePage.Data, url.Host);
+            ms = (MarkupString)await HandlePaywall(articlePage.Data, articlePage.DataAMP, url);
         }
     }
 
-    public static async Task<String> HandlePaywall(String page, String domain)
+    public static async Task<String> HandlePaywall(String page, String pageAMP, Uri url)
     {
         String FixedPage;
+        String domain = url.Host;
 
         // Configure Paywall bypass tecnhiques here
         if (domain.EndsWith("repubblica.it"))
         {
-            // TODO: remove article limit alert using Anglesharp
             AngleSharp.IConfiguration config = Configuration.Default;
             IBrowsingContext context = BrowsingContext.New(config);
 
@@ -60,6 +60,23 @@ else
             if (document.GetElementById("adv-TopLeft") is not null)
             {
                 document.GetElementById("adv-TopLeft").Remove();
+            }
+
+            FixedPage = document.DocumentElement.OuterHtml;
+        }
+        else if (domain.EndsWith("ilfattoquotidiano.it"))
+        {
+            AngleSharp.IConfiguration config = Configuration.Default;
+            IBrowsingContext context = BrowsingContext.New(config);
+            IBrowsingContext contextAMP = BrowsingContext.New(config);
+            AngleSharp.Dom.IDocument document = await context.OpenAsync(req => req.Content(page));
+            AngleSharp.Dom.IDocument documentamp = await contextAMP.OpenAsync(req => req.Content(pageAMP));
+
+            AngleSharp.Dom.IElement? content = documentamp.QuerySelector("section[subscriptions-section='content']");
+
+            if (content is not null)
+            {
+                document.GetElementsByClassName("article-content")[0].Replace(content);
             }
 
             FixedPage = document.DocumentElement.OuterHtml;
