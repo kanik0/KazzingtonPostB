@@ -6,6 +6,7 @@
 @inject Services.AppData articlePage
 @inject NavigationManager NavManager
 @inject HttpClient Http
+@inject IHttpClientFactory ClientFactory
 
 
 <PageTitle>Article</PageTitle>
@@ -58,11 +59,31 @@ else
                 // TODO: centralizzare controlli su URL
                 if (url.Host.EndsWith("repubblica.it") || url.Host.EndsWith("corriere.it") || url.Host.EndsWith("huffingtonpost.it") || url.Host.EndsWith("limesonline.com") || url.Host.EndsWith("editorialedomani.it"))
                 {
-                    proxiedpage = await Http.GetFromJsonAsync<ProxyPage>($"GetPage?encodedUrl={sharedUrl}");
+                    HttpClient NoAuthenticationClient =
+                        ClientFactory.CreateClient(
+                            "KazzingtonPostB.ServerAPI.NoAuthenticationClient");
+
+                    proxiedpage = await NoAuthenticationClient.GetFromJsonAsync<ProxyPage>($"GetPage?encodedUrl={sharedUrl}&amp=false");
 
                     if (proxiedpage is not null && url is not null)
                     {
                         articlePage.Data = proxiedpage.HTML;
+                        articlePage.DataAMP = proxiedpage.HTMLAMP;
+                        articlePage.Url = decodedUrl;
+                    }
+                }
+                // AMP technique
+                else if (url.Host.EndsWith("ilfattoquotidiano.it")) {
+                    HttpClient NoAuthenticationClient =
+                        ClientFactory.CreateClient(
+                            "KazzingtonPostB.ServerAPI.NoAuthenticationClient");
+
+                    proxiedpage = await NoAuthenticationClient.GetFromJsonAsync<ProxyPage>($"GetPage?encodedUrl={sharedUrl}&amp=true");
+
+                    if (proxiedpage is not null && url is not null)
+                    {
+                        articlePage.Data = proxiedpage.HTML;
+                        articlePage.DataAMP = proxiedpage.HTMLAMP;
                         articlePage.Url = decodedUrl;
                     }
                 }
